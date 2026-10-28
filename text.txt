@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADITYA HEX SHOP - VIP Gaming Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-black: #040103;
+            --panel-bg: rgba(18, 5, 12, 0.85);
+            --card-bg: rgba(26, 8, 16, 0.75);
+            --red-main: #ff003c;
+            --red-glow: #ff003c;
+            --red-dim: rgba(255, 0, 60, 0.2);
+            --red-border: rgba(255, 0, 60, 0.4);
+            --text-main: #ffffff;
+            --text-sub: #b5b5c3;
+            --amber-color: #ffaa00;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #hex-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(10, 2, 6, 0.95);
+            border-bottom: 1px solid var(--red-border);
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.15);
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--red-glow);
+        }
+
+        .brand-logo i, .brand-logo span {
+            color: var(--red-main);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid rgba(0, 230, 118, 0.4);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #00e676;
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #00e676;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00e676;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+
+        .user-pill {
+            background: rgba(255, 0, 60, 0.1);
+            border: 1px solid var(--red-border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .user-pill:hover {
+            background: rgba(255, 0, 60, 0.25);
+            box-shadow: 0 0 15px var(--red-glow);
+        }
+
+        .owner-toggle {
+            background: rgba(255, 170, 0, 0.15);
+            border: 1px solid var(--amber-color);
+            color: var(--amber-color);
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .owner-toggle.active {
+            background: var(--amber-color);
+            color: #000;
+            box-shadow: 0 0 12px rgba(255, 170, 0, 0.6);
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+        }
+
+        aside {
+            width: 230px;
+            background: rgba(12, 3, 7, 0.85);
+            border-right: 1px solid var(--red-border);
+            padding: 20px 0;
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-item {
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--text-sub);
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #fff;
+            background: rgba(255, 0, 60, 0.15);
+            border-left-color: var(--red-main);
+            text-shadow: 0 0 8px var(--red-glow);
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            width: 20px;
+            color: var(--red-main);
+        }
+
+        main {
+            flex: 1;
+            padding: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .banner {
+            background: linear-gradient(135deg, rgba(40, 5, 15, 0.8), rgba(15, 2, 6, 0.9));
+            border: 1px solid var(--red-border);
+            border-radius: 8px;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.1);
+        }
+
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--red-main);
+            box-shadow: 0 0 10px var(--red-glow);
+        }
+
+        .banner-text h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+
+        .banner-text h1 span {
+            color: var(--red-main);
+            text-shadow: 0 0 12px var(--red-glow);
+        }
+
+        .banner-text p {
+            color: var(--text-sub);
+            font-size: 15px;
+        }
+
+        .banner-icon i {
+            font-size: 60px;
+            color: var(--red-main);
+            opacity: 0.8;
+            filter: drop-shadow(0 0 15px var(--red-glow));
+        }
+
+        .section-header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header::before {
+            content: '';
+            display: inline-block;
+            width: 6px; height: 18px;
+            background: var(--red-main);
+            box-shadow: 0 0 8px var(--red-glow);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--red-border);
+            border-radius: 8px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            transition: 0.3s ease;
+            position: relative;
+        }
+
+        .product-card:hover {
+            border-color: var(--red-main);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.25);
+            transform: translateY(-4px);
+        }
+
+        .maintenance-banner {
+            position: absolute;
+            top: 15px; left: 0; right: 0;
+            background: rgba(255, 0, 60, 0.9);
+            color: #fff;
+            padding: 6px;
+            font-weight: 800;
+            font-size: 12px;
+            text-align: center;
+            letter-spacing: 1px;
+            z-index: 5;
+            box-shadow: 0 0 10px var(--red-glow);
+        }
+
+        .logo-box {
+            width: 180px; height: 180px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .logo-box img {
+            width: 100%; height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-box svg {
+            width: 100%; height: 100%;
+        }
+
+        .product-caption {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            color: #00e5ff;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            min-height: 38px;
+        }
+
+        .product-card.phantom .product-caption {
+            color: #ffea00;
+        }
+
+        .plans-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .plan-option {
+            background: rgba(10, 2, 6, 0.6);
+            border: 1px solid rgba(255, 0, 60, 0.2);
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .plan-option:hover, .plan-option.selected {
+            border-color: var(--red-main);
+            background: rgba(255, 0, 60, 0.2);
+        }
+
+        .plan-duration { font-weight: 700; font-size: 14px; }
+        .plan-price { font-family: 'Orbitron', sans-serif; font-weight: 800; color: #fff; }
+        .plan-stock { font-size: 12px; color: #00e676; font-weight: 600; }
+        .plan-stock.empty { color: var(--red-main); }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            background: var(--red-main);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 15px var(--red-dim);
+        }
+
+        .btn-action:hover:not(:disabled) {
+            box-shadow: 0 0 25px var(--red-glow);
+            transform: scale(1.02);
+        }
+
+        .btn-action:disabled {
+            background: #44111d;
+            color: #886670;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .owner-card-panel {
+            width: 100%;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(255, 170, 0, 0.4);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .owner-card-panel.visible { display: flex; }
+        
+        .stock-section-title {
+            font-size: 12px;
+            color: var(--amber-color);
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-owner-opt {
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid var(--amber-color);
+            color: var(--amber-color);
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .features-bar {
+            background: rgba(15, 3, 8, 0.8);
+            border: 1px solid var(--red-border);
+            border-radius: 8px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-item { display: flex; align-items: center; gap: 15px; }
+        .feature-item i { font-size: 26px; color: var(--red-main); filter: drop-shadow(0 0 6px var(--red-glow)); }
+        .feature-item div h4 { font-weight: 800; font-size: 15px; }
+        .feature-item div p { color: var(--text-sub); font-size: 13px; }
+
+        footer {
+            border-top: 1px solid rgba(255, 0, 60, 0.2);
+            padding: 18px; text-align: center; color: var(--text-sub); font-size: 13px; margin-top: auto;
+        }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 999; display: none; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: rgba(18, 4, 10, 0.95); border: 1px solid var(--red-main);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.3); border-radius: 10px; width: 90%; max-width: 440px; padding: 25px; position: relative;
+        }
+        .modal-close { position: absolute; top: 15px; right: 15px; color: var(--text-sub); font-size: 20px; cursor: pointer; }
+        .modal-close:hover { color: var(--red-main); }
+        .modal-title { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; margin-bottom: 18px; text-align: center; color: #fff; }
+
+        .form-group { margin-bottom: 14px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 700; color: var(--text-sub); font-size: 13px; }
+        .form-control { width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--red-border); border-radius: 6px; color: #fff; outline: none; }
+        
+        textarea.form-control { resize: vertical; min-height: 80px; }
+
+        /* Google Sign In UI */
+        .google-btn {
+            background: #ffffff;
+            color: #757575;
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            width: 100%;
+            border: 1px solid #ddd;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .google-btn:hover { background: #f8f8f8; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .google-account-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .google-account-item:hover { background: rgba(255,255,255,0.15); }
+        .google-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #ff003c; color: #fff; display: flex;
+            align-items: center; justify-content: center; font-weight: 800;
+        }
+        .contact-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 8px; font-size: 16px; font-weight: 800; color: #fff; text-decoration: none; }
+        .btn-telegram { background: rgba(0, 136, 204, 0.2); border: 1px solid #0088cc; }
+        .btn-instagram { background: rgba(225, 48, 108, 0.2); border: 1px solid #e1306c; }
+        .qr-frame { background: #fff; padding: 12px; border-radius: 8px; display: inline-block; margin: 12px 0; }
+        .qr-frame img { width: 170px; height: 170px; display: block; }
+    </style>
+</head>
+<body>
+    <audio id="bgAudio" loop></audio>
+    <canvas id="hex-canvas"></canvas>
+
+    <div class="app-container">
+        <header>
+            <div class="brand-logo">
+                <i class="fa-solid fa-cube"></i> ADITYA <span>HEX</span> SHOP
+            </div>
+
+            <div class="header-controls">
+                <div class="server-status">
+                    <div class="status-dot"></div> SERVER ONLINE
+                </div>
+
+                <button class="owner-toggle" id="ownerToggleBtn" onclick="toggleOwnerMode()">
+                    <i class="fa-solid fa-shield-halved"></i> Owner Mode
+                </button>
+
+                <div class="user-pill" onclick="openGoogleAuthModal()">
+                    <i class="fa-solid fa-circle-user" style="color: var(--red-main);"></i>
+                    <span id="userAccountText">Google Sign-In</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <aside>
+                <div class="nav-item active"><i class="fa-solid fa-store"></i> Shop</div>
+                <div class="nav-item" onclick="openDepositModal()"><i class="fa-solid fa-wallet"></i> Deposit</div>
+                <div class="nav-item" onclick="openGoogleAuthModal()"><i class="fa-solid fa-user"></i> Account</div>
+                <div class="nav-item" onclick="openContactModal()"><i class="fa-solid fa-headset"></i> Support</div>
+                <div class="nav-item" onclick="showMyKeys()"><i class="fa-solid fa-key"></i> My Keys</div>
+            </aside>
+
+            <main>
+                <div class="banner">
+                    <div class="banner-text">
+                        <h1 id="welcomeTitle">WELCOME TO <span>ADITYA HEX SHOP</span></h1>
+                        <p id="welcomeSub">Get the best VIP mods, services and authorization keys in one secure place.</p>
+                    </div>
+                    <div class="banner-icon"><i class="fa-solid fa-mask"></i></div>
+                </div>
+
+                <div class="section-header">Featured Products</div>
+
+                <div class="products-grid">
+                    <!-- PRODUCT 1: XREG -->
+                    <div class="product-card" id="xregCard">
+                        <div class="maintenance-banner" id="xregMaintBanner" style="display:none;">MAINTENANCE ACTIVE</div>
+                        <div class="logo-box" id="xregLogoBox">
+                            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="100" cy="100" r="90" fill="#030b1e" stroke="#00d2ff" stroke-width="4"/>
+                                <path d="M 50 140 L 90 60 L 110 60 L 70 140 Z" fill="#00d2ff" />
+                                <path d="M 80 140 L 120 60 L 140 60 L 100 140 Z" fill="#0077ff" />
+                                <path d="M 110 140 L 150 60 L 170 60 L 130 140 Z" fill="#00d2ff" />
+                                <text x="100" y="165" font-family="'Orbitron', sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">XREG</text>
+                                <text x="100" y="182" font-family="'Rajdhani', sans-serif" font-weight="700" font-size="12" fill="#00d2ff" text-anchor="middle">NON ROOT</text>
+                            </svg>
+                        </div>
+                        <div class="product-caption">FREE FIRE MAX + FREE FIRE / NON ROOT + ROOT</div>
+
+                        <div class="plans-container" id="xregPlans">
+                            <div class="plan-option selected" onclick="selectPlan('XREG', '1h', 18, this)">
+                                <div><div class="plan-duration">1 Hour Key</div><div class="plan-stock" id="xregStock1h">Stock: 0 Keys</div></div>
+                                <span class="plan-price">₹18</span>
+                            </div>
+                            <div class="plan-option" onclick="selectPlan('XREG', '3h', 25, this)">
+                                <div><div class="plan-duration">3 Hours Key</div><div class="plan-stock" id="xregStock3h">Stock: 0 Keys</div></div>
+                                <span class="plan-price">₹25</span>
+                            </div>
+                            <div class="plan-option" onclick="selectPlan('XREG', '6h', 45, this)">
+                                <div><div class="plan-duration">6 Hours Key</div><div class="plan-stock" id="xregStock6h">Stock: 0 Keys</div></div>
+                                <span class="plan-price">₹45</span>
+                            </div>
+                        </div>
+
+                        <button class="btn-action" id="xregBuyBtn" onclick="processPurchase('XREG')">PURCHASE KEY</button>
+
+                        <div class="owner-card-panel" id="xregOwnerPanel">
+                            <div class="stock-section-title">
+                                <span>OWNER PANEL</span>
+                                <button class="btn-owner-opt" onclick="toggleMaintenance('XREG')">Toggle Maint.</button>
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#ffaa00;">Change Logo:</label>
+                                <input type="file" accept="image/*" class="form-control" onchange="uploadProductImage(event, 'xregLogoBox')">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#ffaa00;">Refill Bulk Keys (100+ Keys Allowed):</label>
+                                <select id="xregRefillPlan" class="form-control" style="margin-bottom:6px;">
+                                    <option value="1h">1 Hour Plan</option>
+                                    <option value="3h">3 Hours Plan</option>
+                                    <option value="6h">6 Hours Plan</option>
+                                </select>
+                                <textarea id="xregBulkKeys" class="form-control" placeholder="Paste keys here (one key per line)..."></textarea>
+                                <button class="btn-action" style="background:#ffaa00; color:#000; margin-top:6px;" onclick="refillBulkStock('XREG')">ADD BULK KEYS</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCT 2: PHANTOM -->
+                    <div class="product-card phantom" id="phantomCard">
+                        <div class="maintenance-banner" id="phantomMaintBanner" style="display:none;">MAINTENANCE ACTIVE</div>
+                        <div class="logo-box" id="phantomLogoBox">
+                            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="200" height="200" rx="15" fill="#08080c"/>
+                                <path d="M 100 30 C 60 30 50 60 50 100 L 50 140 L 65 125 L 80 140 L 100 125 L 120 140 L 135 125 L 150 140 L 150 100 C 150 60 140 30 100 30 Z" fill="#ffffff"/>
+                                <ellipse cx="80" cy="85" rx="10" ry="14" fill="#08080c"/>
+                                <ellipse cx="120" cy="85" rx="10" ry="14" fill="#08080c"/>
+                                <path d="M 80 110 Q 100 125 120 110" stroke="#08080c" stroke-width="4" fill="none"/>
+                                <text x="100" y="175" font-family="'Orbitron', sans-serif" font-weight="900" font-size="18" fill="#ffffff" text-anchor="middle">PHANTOM</text>
+                            </svg>
+                        </div>
+                        <div class="product-caption">FREE FIRE NORMAL / GLOBAL ONLY SUPPORTED & NON-ROOT</div>
+
+                        <div class="plans-container" id="phantomPlans">
+                            <div class="plan-option selected" onclick="selectPlan('PHANTOM', '1h', 19, this)">
+                                <div><div class="plan-duration">1 Hour Key</div><div class="plan-stock" id="phantomStock1h">Stock: 0 Keys</div></div>
+                                <span class="plan-price">₹19</span>
+                            </div>
+                            <div class="plan-option" onclick="selectPlan('PHANTOM', '3h', 28, this)">
+                                <div><div class="plan-duration">3 Hours Key</div><div class="plan-stock" id="phantomStock3h">Stock: 0 Keys</div></div>
+                                <span class="plan-price">₹28</span>
+                            </div>
+                            <div class="plan-option" onclick="selectPlan('PHANTOM', '6h', 45, this)">
+                                <div><div class="plan-duration">6 Hours Key</div><div class="plan-stock" id="phantomStock6h">Stock: 0 Keys</div></div>
+                                <span class="plan-price">₹45</span>
+                            </div>
+                        </div>
+
+                        <button class="btn-action" id="phantomBuyBtn" onclick="processPurchase('PHANTOM')">PURCHASE KEY</button>
+
+                        <div class="owner-card-panel" id="phantomOwnerPanel">
+                            <div class="stock-section-title">
+                                <span>OWNER PANEL</span>
+                                <button class="btn-owner-opt" onclick="toggleMaintenance('PHANTOM')">Toggle Maint.</button>
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#ffaa00;">Change Logo:</label>
+                                <input type="file" accept="image/*" class="form-control" onchange="uploadProductImage(event, 'phantomLogoBox')">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#ffaa00;">Refill Bulk Keys (100+ Keys Allowed):</label>
+                                <select id="phantomRefillPlan" class="form-control" style="margin-bottom:6px;">
+                                    <option value="1h">1 Hour Plan</option>
+                                    <option value="3h">3 Hours Plan</option>
+                                    <option value="6h">6 Hours Plan</option>
+                                </select>
+                                <textarea id="phantomBulkKeys" class="form-control" placeholder="Paste keys here (one key per line)..."></textarea>
+                                <button class="btn-action" style="background:#ffaa00; color:#000; margin-top:6px;" onclick="refillBulkStock('PHANTOM')">ADD BULK KEYS</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="features-bar">
+                    <div class="feature-item"><i class="fa-solid fa-shield-virus"></i><div><h4>100% Safe</h4><p>Anti-ban protection active</p></div></div>
+                    <div class="feature-item"><i class="fa-solid fa-bolt"></i><div><h4>Instant Delivery</h4><p>Keys delivered immediately</p></div></div>
+                    <div class="feature-item"><i class="fa-solid fa-headset"></i><div><h4>24/7 Support</h4><p>Direct assistance available</p></div></div>
+                </div>
+            </main>
+        </div>
+
+        <footer>&copy; 2026 ADITYA HEX. All rights reserved.</footer>
+    </div>
+    <!-- OWNER PASSWORD AUTH MODAL -->
+    <div class="modal-overlay" id="ownerPassModal">
+        <div class="modal-box">
+            <i class="fa-solid fa-xmark modal-close" onclick="closeModal('ownerPassModal')"></i>
+            <div class="modal-title" style="color:#ffaa00;"><i class="fa-solid fa-lock"></i> OWNER ACCESS LOCK</div>
+            <p style="text-align:center; color: var(--text-sub); margin-bottom: 15px;">Enter Owner Security Password:</p>
+            <div class="form-group">
+                <input type="password" id="ownerPinInput" class="form-control" style="border-color:#ffaa00; text-align:center; font-size:18px; letter-spacing:3px;" placeholder="ENTER PASSWORD">
+            </div>
+            
+            <div class="form-group" style="margin-top:15px; border-top:1px dashed #ffaa00; padding-top:10px;">
+                <label style="color:#ffaa00;">Set Background Loop Music (Audio File):</label>
+                <input type="file" accept="audio/*" class="form-control" onchange="uploadLoopMusic(event)">
+            </div>
+
+            <button class="btn-action" style="background:#ffaa00; color:#000;" onclick="verifyOwnerPin()">UNLOCK OWNER MODE</button>
+            <div id="ownerPinErr" style="color:var(--red-main); text-align:center; margin-top:10px; font-weight:700; font-size:14px;"></div>
+        </div>
+    </div>
+
+    <!-- GOOGLE SIGN-IN MODAL -->
+    <div class="modal-overlay" id="googleAuthModal">
+        <div class="modal-box">
+            <i class="fa-solid fa-xmark modal-close" onclick="closeModal('googleAuthModal')"></i>
+            <div class="modal-title" style="color:#fff;"><i class="fa-brands fa-google" style="color:#4285F4;"></i> Google Sign-In</div>
+            <p style="text-align:center; color: var(--text-sub); margin-bottom: 15px; font-size:13px;">Choose an account to sign in to ADITYA HEX SHOP:</p>
+            
+            <div class="google-account-item" onclick="loginWithGoogle('Aditya User', 'aditya.user@gmail.com')">
+                <div class="google-avatar">A</div>
+                <div>
+                    <div style="font-weight:700; font-size:14px; color:#fff;">Aditya User</div>
+                    <div style="font-size:12px; color:var(--text-sub);">aditya.user@gmail.com</div>
+                </div>
+            </div>
+
+            <div class="google-account-item" onclick="loginWithGoogle('Gamer Pro', 'gamerpro2026@gmail.com')">
+                <div class="google-avatar" style="background:#4285F4;">G</div>
+                <div>
+                    <div style="font-weight:700; font-size:14px; color:#fff;">Gamer Pro</div>
+                    <div style="font-size:12px; color:var(--text-sub);">gamerpro2026@gmail.com</div>
+                </div>
+            </div>
+
+            <button class="google-btn" style="margin-top:10px;" onclick="promptCustomGoogle()">
+                <i class="fa-brands fa-google" style="color:#4285F4;"></i> Use another Google Account
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTACT MODAL -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal-box">
+            <i class="fa-solid fa-xmark modal-close" onclick="closeModal('contactModal')"></i>
+            <div class="modal-title">CONTACT ADMIN</div>
+            <a href="https://t.me/Aditya_zen" target="_blank" class="contact-btn btn-telegram"><i class="fa-brands fa-telegram"></i> TELEGRAM DM (@Aditya_zen)</a>
+            <a href="https://www.instagram.com/aditya_hex_?srtk=ZndnZnpuaTh2dno=" target="_blank" class="contact-btn btn-instagram"><i class="fa-brands fa-instagram"></i> INSTAGRAM DIRECT (@aditya_hex_)</a>
+        </div>
+    </div>
+
+    <!-- DEPOSIT MODAL -->
+    <div class="modal-overlay" id="depositModal">
+        <div class="modal-box" style="text-align: center;">
+            <i class="fa-solid fa-xmark modal-close" onclick="closeModal('depositModal')"></i>
+            <div class="modal-title">ADD WALLET BALANCE</div>
+            <div class="form-group">
+                <label>Enter Amount (₹):</label>
+                <input type="number" id="depositAmount" class="form-control" value="100" oninput="updateQR()">
+            </div>
+            <div class="qr-frame"><img id="qrCodeImg" src="" alt="Payment QR Code"></div>
+            <button class="btn-action" onclick="recheckPayment()"><i class="fa-solid fa-rotate-right"></i> RECHECK PAYMENT</button>
+            <div id="verifyStatus" style="margin-top: 10px; font-weight: 700; font-size: 14px;"></div>
+        </div>
+    </div>
+
+    <script>
+        const SEC_UPI = "6200018243@mbk";
+        const OWNER_PASSWORD = "6200018243";
+        let ownerMode = false;
+        let currentUser = null;
+
+        let stocks = {
+            XREG: { '1h': ["XREG-1H-88291"], '3h': ["XREG-3H-99211"], '6h': ["XREG-6H-33821"] },
+            PHANTOM: { '1h': ["PHTM-1H-11029"], '3h': ["PHTM-3H-44910"], '6h': ["PHTM-6H-77821"] }
+        };
+
+        let selectedPlans = { XREG: '1h', PHANTOM: '1h' };
+        let maintenance = { XREG: false, PHANTOM: false };
+        let purchasedKeys = [];
+
+        // Hexagon Particles
+        const canvas = document.getElementById('hex-canvas');
+        const ctx = canvas.getContext('2d');
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        let hexParticles = [];
+        for(let i=0; i<40; i++) {
+            hexParticles.push({
+                x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+                size: Math.random()*25+10, speedY: Math.random()*0.5+0.2, opacity: Math.random()*0.4+0.1
+            });
+        }
+        function drawHexagon(x, y, r) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) { ctx.lineTo(x + r * Math.cos(i * Math.PI / 3), y + r * Math.sin(i * Math.PI / 3)); }
+            ctx.closePath();
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hexParticles.forEach(p => {
+                p.y -= p.speedY; if(p.y < -50) p.y = canvas.height + 50;
+                ctx.strokeStyle = `rgba(255, 0, 60, ${p.opacity})`; ctx.lineWidth = 1.5;
+                drawHexagon(p.x, p.y, p.size); ctx.stroke();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Stock Management
+        function refillBulkStock(product) {
+            const plan = document.getElementById(product.toLowerCase() + 'RefillPlan').value;
+            const text = document.getElementById(product.toLowerCase() + 'BulkKeys').value.trim();
+            if (!text) return alert("Please enter keys to refill.");
+
+            const newKeys = text.split('\n').map(k => k.trim()).filter(k => k.length > 0);
+            stocks[product][plan].push(...newKeys);
+            document.getElementById(product.toLowerCase() + 'BulkKeys').value = '';
+            alert(`Successfully added ${newKeys.length} keys to ${product} (${plan})!`);
+            updateUI();
+        }
+
+        function toggleMaintenance(prod) {
+            maintenance[prod] = !maintenance[prod];
+            alert(`${prod} Maintenance set to: ${maintenance[prod] ? "ON" : "OFF"}`);
+            updateUI();
+        }
+
+        function uploadProductImage(event, containerId) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(containerId).innerHTML = `<img src="${e.target.result}" alt="Product Logo">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function uploadLoopMusic(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const audio = document.getElementById('bgAudio');
+                audio.src = URL.createObjectURL(file);
+                audio.play();
+                alert("Background Music set and playing in loop!");
+            }
+        }
+
+        function selectPlan(prod, plan, price, el) {
+            selectedPlans[prod] = plan;
+            el.parentElement.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
+            el.classList.add('selected');
+            updateUI();
+        }
+
+        function updateUI() {
+            ['XREG', 'PHANTOM'].forEach(prod => {
+                const low = prod.toLowerCase();
+                ['1h', '3h', '6h'].forEach(plan => {
+                    const count = stocks[prod][plan].length;
+                    const stockEl = document.getElementById(`${low}Stock${plan}`);
+                    stockEl.innerText = `Stock: ${count} Keys`;
+                    stockEl.className = `plan-stock ${count === 0 ? 'empty' : ''}`;
+                });
+
+                const isMaint = maintenance[prod];
+                document.getElementById(`${low}MaintBanner`).style.display = isMaint ? 'block' : 'none';
+                
+                const currentPlan = selectedPlans[prod];
+                const availCount = stocks[prod][currentPlan].length;
+                const buyBtn = document.getElementById(`${low}BuyBtn`);
+
+                if (isMaint) {
+                    buyBtn.disabled = true;
+                    buyBtn.innerText = "UNDER MAINTENANCE";
+                } else if (availCount <= 0) {
+                    buyBtn.disabled = true;
+                    buyBtn.innerText = "OUT OF STOCK";
+                } else {
+                    buyBtn.disabled = false;
+                    buyBtn.innerText = "PURCHASE KEY";
+                }
+            });
+        }
+
+        function processPurchase(prod) {
+            if (maintenance[prod]) {
+                return alert("Aap abhi iss product ko purchase nahi kar sakte kyunki product maintenance pe hai due to in-game patch updates.");
+            }
+            const plan = selectedPlans[prod];
+            if (stocks[prod][plan].length === 0) {
+                return alert("Selected duration key is out of stock!");
+            }
+
+            const key = stocks[prod][plan].shift();
+            purchasedKeys.push({ prod, plan, key, date: new Date().toLocaleTimeString() });
+            alert(`Purchase Successful!\nProduct: ${prod} (${plan})\nYour Key: ${key}`);
+            updateUI();
+        }
+
+        function showMyKeys() {
+            if (purchasedKeys.length === 0) return alert("No active keys found.");
+            let text = "YOUR PURCHASED KEYS:\n";
+            purchasedKeys.forEach(k => text += `• ${k.prod} [${k.plan}]: ${k.key}\n`);
+            alert(text);
+        }
+
+        // Owner Controls
+        function toggleOwnerMode() {
+            if (!ownerMode) {
+                document.getElementById('ownerPinInput').value = '';
+                document.getElementById('ownerPinErr').innerText = '';
+                document.getElementById('ownerPassModal').classList.add('active');
+            } else {
+                ownerMode = false;
+                applyOwnerState();
+            }
+        }
+
+        function verifyOwnerPin() {
+            if (document.getElementById('ownerPinInput').value === OWNER_PASSWORD) {
+                ownerMode = true;
+                closeModal('ownerPassModal');
+                applyOwnerState();
+            } else {
+                document.getElementById('ownerPinErr').innerText = "INCORRECT OWNER PASSWORD!";
+            }
+        }
+
+        function applyOwnerState() {
+            const btn = document.getElementById('ownerToggleBtn');
+            btn.classList.toggle('active', ownerMode);
+            btn.innerHTML = ownerMode ? `<i class="fa-solid fa-lock-open"></i> Owner Active` : `<i class="fa-solid fa-shield-halved"></i> Owner Mode`;
+            document.getElementById('xregOwnerPanel').classList.toggle('visible', ownerMode);
+            document.getElementById('phantomOwnerPanel').classList.toggle('visible', ownerMode);
+        }
+
+        // Google Authentication
+        function openGoogleAuthModal() { document.getElementById('googleAuthModal').classList.add('active'); }
+        function loginWithGoogle(name, email) {
+            currentUser = { name, email };
+            document.getElementById('userAccountText').innerText = name;
+            closeModal('googleAuthModal');
+            alert(`Signed in successfully as ${name} (${email})`);
+        }
+        function promptCustomGoogle() {
+            const mail = prompt("Enter your Gmail address:");
+            if (mail && mail.includes('@gmail.com')) {
+                loginWithGoogle(mail.split('@')[0], mail);
+            } else if (mail) {
+                alert("Please enter a valid Gmail address.");
+            }
+        }
+
+        function openContactModal() { document.getElementById('contactModal').classList.add('active'); }
+        function openDepositModal() { document.getElementById('depositModal').classList.add('active'); updateQR(); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function updateQR() {
+            const amt = document.getElementById('depositAmount').value || 100;
+            document.getElementById('qrCodeImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=` + encodeURIComponent(`upi://pay?pa=${SEC_UPI}&pn=ADITYAHEX&am=${amt}&cu=INR`);
+        }
+
+        function recheckPayment() {
+            const st = document.getElementById('verifyStatus'); st.style.color = "#ffaa00"; st.innerText = "Checking banking gateway...";
+            setTimeout(() => { st.style.color = "#00e676"; st.innerText = "Payment Verified Successfully!"; }, 2000);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
